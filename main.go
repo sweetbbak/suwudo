@@ -66,8 +66,13 @@ func main() {
 	}
 
 	// get password
-	fmt.Printf("enter password for user: %s\n", name)
+	fmt.Printf("Enter password for user: %s\n", name)
 	fmt.Scanln(&password)
+
+	err = unix.IoctlSetTermios(STDINFILENO, unix.TCSETS, raw)
+	if err != nil {
+		panic(err)
+	}
 
 	// open etc shadow and find the users hash - name:$6$reallylonghash:12345:0:99999:7:::
 	fi, err := os.Open("/etc/shadow")
