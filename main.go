@@ -23,7 +23,7 @@ var (
 )
 
 func main() {
-	// root user
+	// get effective user ID and set to root user
 	uid := os.Geteuid()
 	err := syscall.Setuid(0)
 	if err != nil {
