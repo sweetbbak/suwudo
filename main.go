@@ -66,7 +66,8 @@ func main() {
 	}
 
 	// get password
-	fmt.Printf("Enter password for user: %s\n", name)
+	// fmt.Printf("Enter password for user: %s\n", name)
+	fmt.Printf("\x1b[33m[\x1b[0m\x1b[32msuwudo\x1b[0m\x1b[33m]\x1b[0m password for %s:\n", name)
 	fmt.Scanln(&password)
 
 	err = unix.IoctlSetTermios(STDINFILENO, unix.TCSETS, raw)
