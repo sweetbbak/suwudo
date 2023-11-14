@@ -40,7 +40,7 @@ func timeout() bool {
 }
 
 func reset_modtime() {
-	os.Chtimes("/proc/self/exe", time.Now(), time.Now())
+	// os.Chtimes("/proc/self/exe", time.Now(), time.Now())
 }
 
 func askpass() {
@@ -62,8 +62,11 @@ func askpass() {
 
 	prompt = "\x1b[33m[\x1b[0m\x1b[32msuwudo\x1b[0m\x1b[33m]\x1b[0m password for %s: "
 	user := os.Getenv("USER")
-	fmt.Printf(prompt, user)
-	fmt.Scanln(&password)
+	// fmt.Printf(prompt, user)
+	// fmt.Scanln(&password)
+
+	fmt.Fprintf(os.Stderr, prompt, user)
+	fmt.Fscanln(os.Stderr, &password)
 
 	err = unix.IoctlSetTermios(STDINFILENO, unix.TCSETS, raw)
 	if err != nil {
@@ -97,6 +100,7 @@ func get_user() string {
 
 func verify_pass() bool {
 	name = get_user()
+	fmt.Println(name)
 	// open etc shadow and find the users hash - name:$6$reallylonghash:12345:0:99999:7:::
 	fi, err := os.Open("/etc/shadow")
 	if err != nil {
@@ -135,17 +139,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	if timeout() {
-		askpass()
-		if verify_pass() {
-			reset_modtime()
-		} else {
-			fmt.Println("Incorrect password")
-			os.Exit(1)
-		}
+	// if timeout() {
+	// 	askpass()
+	// 	if verify_pass() {
+	// 		reset_modtime()
+	// 	} else {
+	// 		fmt.Println("Incorrect password")
+	// 		os.Exit(1)
+	// 	}
+	// }
+
+	askpass()
+	if verify_pass() != true {
+		fmt.Fprintln(os.Stderr, "Incorrect password")
+		os.Exit(1)
 	}
 
 	cmd := strings.Join(os.Args[1:], " ")
+	if cmd == "" {
+		os.Exit(0)
+	}
+
 	exitCode := system(cmd)
 	os.Exit(exitCode)
 }
