@@ -79,9 +79,9 @@ func askpass() {
 	// fmt.Printf(prompt, user)
 	// fmt.Scanln(&password)
 
-	fmt.Fprintf(os.Stdout, "\x1b[2K")
-	fmt.Fprintf(os.Stdout, "\x1b[0G")
-	fmt.Fprintf(os.Stdout, prompt, user)
+	fmt.Fprintf(os.Stderr, "\x1b[2K")
+	fmt.Fprintf(os.Stderr, "\x1b[0G")
+	fmt.Fprintf(os.Stderr, prompt, user)
 	fmt.Fscanf(os.Stdout, "%s", &password)
 
 	// erase line
