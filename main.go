@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	password string
-	name     string
-	token    string
-	prompt   string
+	password    string
+	name        string
+	token       string
+	prompt      string
+	STDINFILENO int = 0
 )
 
 func timeout() bool {
@@ -43,9 +44,15 @@ func reset_modtime() {
 	// os.Chtimes("/proc/self/exe", time.Now(), time.Now())
 }
 
+func restore(raw *unix.Termios) {
+	err := unix.IoctlSetTermios(STDINFILENO, unix.TCSETS, raw)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func askpass() {
 	// turn off terminal echo
-	STDINFILENO := 0
 	raw, err := unix.IoctlGetTermios(STDINFILENO, unix.TCGETS)
 	if err != nil {
 		panic(err)
@@ -54,6 +61,13 @@ func askpass() {
 	rawState := *raw
 	rawState.Lflag &^= unix.ECHO
 	rawState.Lflag &^= unix.ICANON
+	rawState.Iflag &^= unix.IGNBRK | unix.BRKINT | unix.PARMRK | unix.ISTRIP | unix.INLCR | unix.IGNCR | unix.ICRNL | unix.IXON
+	rawState.Oflag &^= unix.OPOST
+	rawState.Lflag &^= unix.ECHO | unix.ECHONL | unix.ICANON | unix.ISIG | unix.IEXTEN
+	rawState.Cflag &^= unix.CSIZE | unix.PARENB
+	rawState.Cflag |= unix.CS8
+	rawState.Cc[unix.VMIN] = 1
+	rawState.Cc[unix.VTIME] = 0
 
 	err = unix.IoctlSetTermios(STDINFILENO, unix.TCSETS, &rawState)
 	if err != nil {
@@ -65,13 +79,16 @@ func askpass() {
 	// fmt.Printf(prompt, user)
 	// fmt.Scanln(&password)
 
-	fmt.Fprintf(os.Stderr, prompt, user)
-	fmt.Fscanln(os.Stderr, &password)
+	fmt.Fprintf(os.Stdout, "\x1b[2K")
+	fmt.Fprintf(os.Stdout, "\x1b[0G")
+	fmt.Fprintf(os.Stdout, prompt, user)
+	fmt.Fscanf(os.Stdout, "%s", &password)
 
-	err = unix.IoctlSetTermios(STDINFILENO, unix.TCSETS, raw)
-	if err != nil {
-		panic(err)
-	}
+	// erase line
+	fmt.Fprintf(os.Stderr, "\x1b[2K")
+	fmt.Fprintf(os.Stderr, "\x1b[0G")
+	defer restore(raw)
+	fmt.Fprintf(os.Stderr, "\x1b[2K")
 }
 
 func get_user() string {
@@ -100,7 +117,6 @@ func get_user() string {
 
 func verify_pass() bool {
 	name = get_user()
-	fmt.Println(name)
 	// open etc shadow and find the users hash - name:$6$reallylonghash:12345:0:99999:7:::
 	fi, err := os.Open("/etc/shadow")
 	if err != nil {
