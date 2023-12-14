@@ -160,6 +160,8 @@ func verify_pass(password string, uid int) (bool, error) {
 }
 
 func main() {
+	// learned this the hard way to get the UID of the OG user BEFORE
+	// calling Setuid() lol. Otherwise it will return 0 for root
 	userID := syscall.Getuid()
 
 	// get effective user ID and set to root user
@@ -171,7 +173,7 @@ func main() {
 
 	pass, err := askpass()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	passed, err := verify_pass(pass, userID)
