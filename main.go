@@ -75,8 +75,8 @@ func askpass() (string, error) {
 	var prompt string
 
 	// prompt = "\x1b[33m[\x1b[0m\x1b[32msuwudo\x1b[0m\x1b[33m]\x1b[0m password for %s: "
-	// prompt = "\x1b[38;2;111;111;111m│ \x1b[0m\x1b[38;2;124;120;254m\x1b[3msuwudo password for \x1b[38;2;245;127;224m%s \x1b[38;2;124;120;254m>\x1b[0m "
-	prompt = "%s > "
+	prompt = "\x1b[38;2;111;111;111m│ \x1b[0m\x1b[38;2;124;120;254mpassword for \x1b[38;2;245;127;224m\x1b[3m%s\x1b[0m \x1b[38;2;124;120;254m>\x1b[0m "
+	// prompt = "%s > "
 	user := os.Getenv("USER")
 	if user == "" {
 		user = "user"
@@ -136,11 +136,11 @@ func verify_pass(password string, uid int) (bool, error) {
 	}
 
 	defer fi.Close()
-	scanner1 := bufio.NewScanner(fi)
+	scanner := bufio.NewScanner(fi)
 
-	for scanner1.Scan() {
-		if strings.Contains(scanner1.Text(), name.Name) {
-			token = scanner1.Text()
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), name.Name) {
+			token = scanner.Text()
 		}
 	}
 
