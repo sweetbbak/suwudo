@@ -351,6 +351,13 @@ func run(args []string, UID, GID uint32) error {
 		setEnv(opts.SetEnv)
 	}
 
+	if opts.Directory != "" {
+		err := os.Chdir(opts.Directory)
+		if err != nil {
+			return err
+		}
+	}
+
 	Debug("Env vars for command %v: %v\n", args, cmd.Environ())
 
 	if err := cmd.Run(); err != nil {
