@@ -229,6 +229,22 @@ func Suwu(args []string) error {
 		return nil
 	}
 
+	u, err := NewUser()
+	if err != nil {
+		return err
+	}
+	u.Authorize()
+	u.AsUser(opts.AsUser)
+	u.AsGroup(opts.AsGroup)
+	shell, err := u.GetTargetShell()
+	if err != nil {
+		return err
+	}
+
+	if opts.Shell {
+		return u.Exec([]string{shell})
+	}
+
 	return runAsUser(args, oguser)
 }
 
