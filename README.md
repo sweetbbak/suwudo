@@ -22,6 +22,8 @@ suwu -E -- ls -lah /
 suwu --env TERM=xterm --env MY_SECRET=xyz123 --user=nobody /bin/bash
 # change directory for command
 suwu --chdir / --shell
+# terminate flag parsing with a double-dash
+suwu -E -- ls -1 | xargs echo
 ```
 ## Installation
 - Using just with Go, install instructions here: ![https://github.com/casey/just](https://github.com/casey/just)
