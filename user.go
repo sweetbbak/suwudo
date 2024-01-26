@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/user"
 	"strconv"
 	"strings"
@@ -17,6 +18,15 @@ type User struct {
 	asUID   uint32
 	asGID   uint32
 	hasAuth bool
+	Execute
+}
+
+type Execute struct {
+	Env         []string
+	Dir         string
+	Shell       string
+	PreserveEnv bool
+	Fork        bool
 }
 
 func NewUser() (*User, error) {
@@ -33,26 +43,38 @@ func NewUser() (*User, error) {
 		usr.asGID = 0 // default to root user
 	}
 
+	dir, err := os.Getwd()
+	if err == nil {
+		usr.Execute.Dir = dir
+	}
+
+	// defaults will be overridden
+	usr.Execute.Env = os.Environ()
+	usr.Shell = "/bin/bash"
+	usr.Execute.PreserveEnv = false
+	usr.Fork = false
+
 	return usr, nil
 }
 
-func (u *User) Authorize() error {
-	pass, err := askpass()
+func (u *User) Authorize(prompt string) error {
+	pass, err := Credentials(prompt)
 	if err != nil {
-		return fmt.Errorf("Unable to authenticate user [%v]: %v", u.asUser.Username, err)
+		return fmt.Errorf("Unable to authenticate user [%v]: %w", u.asUser.Username, err)
 	}
 
-	uid, err := strconv.Atoi(u.User.Uid)
+	passed, err := PasswordVerify(pass, u)
 	if err != nil {
 		return err
 	}
 
-	passed, err := verify_pass(pass, uid)
 	if passed {
 		u.hasAuth = true
+		return nil
+	} else {
+		u.hasAuth = false
+		return fmt.Errorf("Unable to authenticate user [%v]: %w", u.asUser.Username, err)
 	}
-
-	return nil
 }
 
 func (u *User) AsUser(username string) error {
@@ -107,5 +129,15 @@ func (u *User) GetTargetShell() (string, error) {
 }
 
 func (u *User) Exec(args []string) error {
-	return run(args, u.asGID, u.asUID)
+	return run(args, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+}
+
+func (u *User) ExecShell(args []string) error {
+	cmd := strings.Join(args, " ")
+	return runShell(cmd, u.Shell)
+}
+
+func (u *User) ExecShellCmd(args []string) error {
+	cmd := strings.Join(args, " ")
+	return runShell(cmd, u.Shell)
 }
