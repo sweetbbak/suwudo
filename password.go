@@ -19,6 +19,10 @@ func Credentials(prompt string) (string, error) {
 		return "", fmt.Errorf("unable to read password: %w", err)
 	}
 
+	// erase line
+	fmt.Fprintf(os.Stderr, "\x1b[2K")
+	fmt.Fprintf(os.Stderr, "\x1b[0G")
+
 	password := string(bytePassword)
 	if len(password) > 1 && strings.HasSuffix("\n", password) {
 		password = strings.TrimSuffix("\n", password)

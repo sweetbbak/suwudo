@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/user"
 	"strconv"
 	"strings"
@@ -43,14 +42,11 @@ func NewUser() (*User, error) {
 		usr.asGID = 0 // default to root user
 	}
 
-	dir, err := os.Getwd()
-	if err == nil {
-		usr.Execute.Dir = dir
-	}
+	Debug("NewUser: User set as: %s - Group %s\n", usr.User.Username, usr.Group.Name)
 
 	// defaults will be overridden
-	usr.Execute.Env = os.Environ()
-	usr.Shell = "/bin/bash"
+	// usr.Execute.Env = os.Environ()
+	usr.Shell = "/bin/sh"
 	usr.Execute.PreserveEnv = false
 	usr.Fork = false
 
@@ -62,6 +58,8 @@ func (u *User) Authorize(prompt string) error {
 	if err != nil {
 		return fmt.Errorf("Unable to authenticate user [%v]: %w", u.asUser.Username, err)
 	}
+
+	Debug("Verifying password for user: %s\n", u.User.Username)
 
 	passed, err := PasswordVerify(pass, u)
 	if err != nil {
@@ -84,6 +82,7 @@ func (u *User) AsUser(username string) error {
 	}
 
 	u.asUser = asuser
+	Debug("User lookup for target resolved to: %s\n", asuser)
 
 	// get uint32 of UID for setting UID in syscall.SysProcAttr
 	i, err := strconv.Atoi(asuser.Uid)
@@ -92,6 +91,8 @@ func (u *User) AsUser(username string) error {
 	}
 
 	u.asUID = uint32(i)
+	Debug("User lookup for target UID resolved to: %v\n", i)
+
 	return nil
 }
 
@@ -102,6 +103,7 @@ func (u *User) AsGroup(groupName string) error {
 	}
 
 	u.asGroup = group
+	Debug("User lookup for target resolved to: %s\n", group)
 
 	i, err := strconv.Atoi(group.Gid)
 	if err != nil {
@@ -109,17 +111,26 @@ func (u *User) AsGroup(groupName string) error {
 	}
 
 	u.asGID = uint32(i)
+	Debug("User lookup for target UID resolved to: %v\n", i)
+
 	return nil
 }
 
 func (u *User) GetTargetShell() (string, error) {
-	passent, err := etcPasswd(u.User.Username)
+	// sanity check
+	if u.asUser.Username == "" {
+		return "", fmt.Errorf("Error getting target users default shell, internal error finding user")
+	}
+
+	passent, err := etcPasswd(u.asUser.Username)
 	if err != nil {
 		return "", err
 	}
 
 	fields := strings.Split(passent, ":")
 	shell := fields[len(fields)-1]
+
+	Debug("User default shell: %v\n", shell)
 
 	if shell != "" {
 		return shell, nil
@@ -133,11 +144,10 @@ func (u *User) Exec(args []string) error {
 }
 
 func (u *User) ExecShell(args []string) error {
-	cmd := strings.Join(args, " ")
-	return runShell(cmd, u.Shell)
+	return run([]string{u.Shell}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
 }
 
 func (u *User) ExecShellCmd(args []string) error {
 	cmd := strings.Join(args, " ")
-	return runShell(cmd, u.Shell)
+	return run([]string{u.Shell, "-c", cmd}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
 }

@@ -50,6 +50,7 @@ func Suwu(args []string) error {
 
 	// set user and group if set
 	if opts.AsUser != "" {
+		Debug("main: setting user: %s\n", opts.AsUser)
 		err := usr.AsUser(opts.AsUser)
 		if err != nil {
 			return err
@@ -90,12 +91,18 @@ func Suwu(args []string) error {
 }
 
 func main() {
-	args, err := flags.Parse(&opts)
+	parser := flags.NewParser(&opts, flags.Default)
+	args, err := parser.Parse()
 	if flags.WroteHelp(err) {
 		os.Exit(0)
 	}
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if len(args) < 1 && !opts.Shell {
+		parser.WriteHelp(os.Stderr)
+		os.Exit(0)
 	}
 
 	if opts.Verbose {
