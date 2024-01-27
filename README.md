@@ -42,3 +42,5 @@ or grab a binary from releases
 - add credential caching
 - add a config file
 - use pinentry or zenity as a GUI option to enter password
+- be cross-platform (Linux/Windows/Mac/BSD)
+- honor the sudoers file or a similar version of that file
