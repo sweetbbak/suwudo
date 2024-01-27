@@ -3,7 +3,7 @@
   <img src="assets/suwu.png" />
 </p>
 
-A very simple and very minimal implementation of a privelage escalation tool similar to
+A simple and minimal implementation of a privelage escalation tool similar to
 `sudo`, `su` or `doas`.
 
 ![](assets/ex1.png)

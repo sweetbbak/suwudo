@@ -40,9 +40,28 @@ func Suwu(args []string) error {
 		prompt = fmt.Sprintf(prompt, usr.User.Username)
 	}
 
-	err = usr.Authorize(prompt)
+	auth, err := IsAuthorizedCache()
 	if err != nil {
-		return err
+		Debug("error using cached credentials: %w", err)
+	}
+
+	if auth {
+		Debug("AUTH successful")
+		usr.hasAuth = true
+	}
+
+	if !usr.hasAuth {
+		err = usr.Authorize(prompt)
+		if err != nil {
+			return err
+		}
+
+		if usr.hasAuth {
+			err := CacheCreds()
+			if err != nil {
+				Debug("error caching credentials: %w", err)
+			}
+		}
 	}
 
 	// redundant check for authorization
@@ -70,6 +89,8 @@ func Suwu(args []string) error {
 			return err
 		}
 	}
+
+	usr.Env = opts.SetEnv
 
 	var shell string
 	shell, err = usr.GetTargetShell()

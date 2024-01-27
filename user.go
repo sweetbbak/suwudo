@@ -46,6 +46,7 @@ func NewUser() (*User, error) {
 
 	// defaults will be overridden
 	// usr.Execute.Env = os.Environ()
+	// usr.Env = opts.SetEnv
 	usr.Shell = "/bin/sh"
 	usr.Execute.PreserveEnv = false
 	usr.Fork = false

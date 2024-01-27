@@ -10,13 +10,27 @@ build:
     sudo chown root suwu
     sudo chmod u+s suwu
 
-install:
+install-usr-bin:
     #!/usr/bin/env bash
     printf "\e[3;33;3m%s\e[0m\n" "Installing suwudo"
+    suwu_path=$(which suwu)
+    [ -e "$suwu_path" ] && rm "${suwu_path}"
+
     go build
     sudo /usr/bin/cp ./suwu /usr/bin
     sudo chown root /usr/bin/suwu
     sudo chmod u+s /usr/bin/suwu
+
+install:
+    #!/usr/bin/env bash
+    printf "\e[3;33;3m%s\e[0m\n" "Installing suwudo"
+    suwu_path=$(which suwu)
+    [ -e "$suwu_path" ] && rm "${suwu_path}"
+
+    go build
+    /usr/bin/cp ./suwu ~/bin
+    sudo chown root ~/bin/suwu
+    sudo chmod u+s ~/bin/suwu
 
 
 uninstall:
