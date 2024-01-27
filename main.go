@@ -78,6 +78,9 @@ func Suwu(args []string) error {
 	}
 
 	usr.Shell = shell
+	if opts.Directory != "" {
+		usr.Dir = opts.Directory
+	}
 
 	// interactive shell
 	if opts.Shell {
