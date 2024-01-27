@@ -11,8 +11,8 @@ import (
 )
 
 // return users etc passwd entry
-func etcPasswd(usern string) (string, error) {
-	fi, err := os.Open("/etc/passwd")
+func etcPasswd(usern, passFile string) (string, error) {
+	fi, err := os.Open(passFile)
 	if err != nil {
 		return "", err
 	}

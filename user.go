@@ -49,6 +49,7 @@ func NewUser() (*User, error) {
 	usr.Shell = "/bin/sh"
 	usr.Execute.PreserveEnv = false
 	usr.Fork = false
+	usr.hasAuth = false
 
 	return usr, nil
 }
@@ -123,7 +124,7 @@ func (u *User) GetTargetShell() (string, error) {
 		return "", fmt.Errorf("Error getting target users default shell, internal error finding user")
 	}
 
-	passent, err := etcPasswd(u.asUser.Username)
+	passent, err := etcPasswd(u.asUser.Username, "/etc/passwd")
 	if err != nil {
 		return "", err
 	}
