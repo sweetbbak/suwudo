@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/jessevdk/go-flags"
 )
@@ -33,6 +34,7 @@ func Suwu(args []string) error {
 	var prompt string
 	if opts.Prompt != "" {
 		prompt = opts.Prompt
+		prompt = formatPrompt(prompt, usr.User.Username)
 	} else {
 		prompt = "\x1b[38;2;111;111;111m│ \x1b[0m\x1b[38;2;124;120;254mpassword for \x1b[38;2;245;127;224m\x1b[3m%s\x1b[0m \x1b[38;2;124;120;254m>\x1b[0m "
 		prompt = fmt.Sprintf(prompt, usr.User.Username)
@@ -79,7 +81,12 @@ func Suwu(args []string) error {
 
 	// interactive shell
 	if opts.Shell {
-		return usr.ExecShell(args)
+		err := usr.ExecShell()
+		if err, ok := err.(*exec.ExitError); ok {
+			os.Exit(err.ExitCode())
+		} else {
+			os.Exit(0)
+		}
 	}
 
 	// exec CMD with shell

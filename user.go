@@ -61,7 +61,8 @@ func (u *User) Authorize(prompt string) error {
 
 	Debug("Verifying password for user: %s\n", u.User.Username)
 
-	passed, err := PasswordVerify(pass, u)
+	// default is /etc/shadow
+	passed, err := PasswordVerify(pass, u, "")
 	if err != nil {
 		return err
 	}
@@ -140,14 +141,14 @@ func (u *User) GetTargetShell() (string, error) {
 }
 
 func (u *User) Exec(args []string) error {
-	return run(args, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+	return Run(args, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
 }
 
-func (u *User) ExecShell(args []string) error {
-	return run([]string{u.Shell}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+func (u *User) ExecShell() error {
+	return Run([]string{u.Shell}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
 }
 
 func (u *User) ExecShellCmd(args []string) error {
 	cmd := strings.Join(args, " ")
-	return run([]string{u.Shell, "-c", cmd}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+	return Run([]string{u.Shell, "-c", cmd}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
 }

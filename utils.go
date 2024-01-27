@@ -53,7 +53,7 @@ func formatPrompt(s, usrname string) string {
 	s = strings.ReplaceAll(s, "{usr}", usrname)
 	s = strings.ReplaceAll(s, "{user}", usrname)
 	s = strings.ReplaceAll(s, "{USER}", usrname)
-	return fmt.Sprintf(s, usrname)
+	return s
 }
 
 type Hex string

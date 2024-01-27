@@ -31,12 +31,15 @@ func Credentials(prompt string) (string, error) {
 	return strings.TrimSpace(password), nil
 }
 
-func PasswordVerify(password string, usr *User) (bool, error) {
+func PasswordVerify(password string, usr *User, passFile string) (bool, error) {
 	// open etc shadow and find the users hash - name:$6$reallylonghash:12345:0:99999:7:::
-	var passFile = "/etc/shadow"
+	if passFile == "" {
+		passFile = "/etc/shadow"
+	}
+
 	fi, err := os.Open(passFile)
 	if err != nil {
-		return false, fmt.Errorf("unable to open /etc/shadow: %w", err)
+		return false, fmt.Errorf("unable to open '%s': %w", passFile, err)
 	}
 	defer fi.Close()
 
@@ -57,7 +60,7 @@ func PasswordVerify(password string, usr *User) (bool, error) {
 	}
 
 	if token == "" {
-		return false, fmt.Errorf("unable to parse shadow file in /etc/shadow")
+		return false, fmt.Errorf("unable to parse file '%s'", passFile)
 	}
 
 	// hash/token is the 2nd field with a ":" delimiter

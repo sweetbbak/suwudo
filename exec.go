@@ -7,7 +7,7 @@ import (
 	"syscall"
 )
 
-func run(args, env []string, UID, GID uint32, dir string, preserveEnv, fork bool) error {
+func Run(args, env []string, UID, GID uint32, dir string, preserveEnv, fork bool) error {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{}
 
@@ -35,7 +35,7 @@ func run(args, env []string, UID, GID uint32, dir string, preserveEnv, fork bool
 
 	Debug("Env vars for command %v: %v\n", args, cmd.Environ())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Unable to run command [%s]: %w", args, err)
+		return fmt.Errorf("Unable to run command %s: %w", args, err)
 	}
 
 	return nil
