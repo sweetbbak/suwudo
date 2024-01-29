@@ -158,6 +158,10 @@ func (u *User) ExecShellCmd(args []string) error {
 	return Run([]string{u.Shell, "-c", cmd}, u)
 }
 
+func (u *User) ExecShellCmdString(cmd string) error {
+	return Run([]string{u.Shell, "-c", cmd}, u)
+}
+
 func (u *User) CacheCredentials() error {
 	err := CacheCreds()
 	if err != nil {

@@ -126,6 +126,10 @@ func isPiped() bool {
 
 // COLOR UTILS
 func formatPrompt(s, usrname string) string {
+	if len(s) > 100 {
+		return fmt.Sprintf("prompt for %s: ", usrname)
+	}
+
 	s = replaceColor(s)
 	s = strings.ReplaceAll(s, "{usr}", usrname)
 	s = strings.ReplaceAll(s, "{user}", usrname)

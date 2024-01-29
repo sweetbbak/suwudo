@@ -37,7 +37,11 @@ func Suwu(args []string) error {
 		prompt = opts.Prompt
 		prompt = formatPrompt(prompt, usr.User.Username)
 	} else {
-		prompt = "\x1b[38;2;111;111;111m│ \x1b[0m\x1b[38;2;124;120;254mpassword for \x1b[38;2;245;127;224m\x1b[3m%s\x1b[0m \x1b[38;2;124;120;254m>\x1b[0m "
+		if !isColorterm() {
+			prompt = "password for %s: "
+		} else {
+			prompt = "\x1b[38;2;111;111;111m│ \x1b[0m\x1b[38;2;124;120;254mpassword for \x1b[38;2;245;127;224m\x1b[3m%s\x1b[0m \x1b[38;2;124;120;254m>\x1b[0m "
+		}
 		prompt = fmt.Sprintf(prompt, usr.User.Username)
 	}
 
@@ -107,7 +111,11 @@ func Suwu(args []string) error {
 	}
 
 	if len(opts.SetEnv) != 0 {
-		usr.Env = opts.SetEnv
+		usr.Env = append(usr.Env, opts.SetEnv...)
+	}
+
+	if opts.UseShell != "" {
+		return usr.ExecShellCmdString(opts.UseShell)
 	}
 
 	// interactive shell
@@ -138,7 +146,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if len(args) < 1 && !opts.Shell {
+	if len(args) < 1 && !opts.Shell && opts.UseShell == "" {
 		parser.WriteHelp(os.Stderr)
 		os.Exit(0)
 	}
