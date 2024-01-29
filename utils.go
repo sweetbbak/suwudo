@@ -109,6 +109,21 @@ func setEnvCmd(args []string, cmd *exec.Cmd) {
 	}
 }
 
+func isColorterm() bool {
+	_, ok := os.LookupEnv("COLORTERM")
+	return ok
+}
+
+// is stdout a pipe?
+func isPiped() bool {
+	f, err := os.Stdout.Stat()
+	if err != nil {
+		return false
+	}
+
+	return f.Mode()&os.ModeCharDevice == 0
+}
+
 // COLOR UTILS
 func formatPrompt(s, usrname string) string {
 	s = replaceColor(s)

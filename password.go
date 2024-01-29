@@ -14,7 +14,15 @@ import (
 
 // Prompt user for password, and return the raw password
 func Credentials(prompt string) (string, error) {
-	fmt.Print(prompt)
+	var out *os.File
+	if isPiped() {
+		out = os.Stderr
+	} else {
+		out = os.Stdout
+	}
+
+	fmt.Fprint(out, prompt)
+
 	bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		return "", fmt.Errorf("unable to read password: %w", err)
@@ -76,12 +84,13 @@ func PasswordVerify(password string, usr *User, passFile string) (bool, error) {
 		return false, fmt.Errorf("Error: password hash appears to be in an incorrect format or there was an error with scanning '%s'", passFile)
 	}
 
-	// get rid of this C dependency
+	// TODO get rid of this C dependency. Will have to probably write a library to verify yescrypt
 	if strings.HasPrefix(token, "$y$") {
 		return yescrypt.Verify(password, token), nil
 	}
 
-	crypt := crypt.SHA512.New()
+	crypt := crypt.NewFromHash(token)
+
 	err = crypt.Verify(token, []byte(password))
 	if err != nil {
 		return false, fmt.Errorf("Error verifying password against password hash: %w", err)

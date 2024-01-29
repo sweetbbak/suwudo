@@ -17,6 +17,7 @@ var opts struct {
 	SetEnv      []string `short:"e" long:"env" description:"set environment variables for command ex: (--env USER=suwu)"`
 	PreserveEnv bool     `short:"E" long:"preserve-env" description:"preserve the calling users environment variables"`
 	Shell       bool     `short:"s" long:"shell" description:"use the default shell for the user we are executing as"`
+	UseShell    string   `short:"c" long:"command" description:"use default shell to interpret command"`
 	ExecShell   bool     `short:"S" long:"exec" description:"execute command using SHELL"`
 	Login       bool     `short:"l" long:"login" description:"use shell as user and source all of their environment variables"`
 	Fork        bool     `short:"f" long:"fork" description:"fork process into the background"`
