@@ -9,6 +9,7 @@ import (
 	"github.com/GehirnInc/crypt"
 	_ "github.com/GehirnInc/crypt/sha512_crypt"
 	"golang.org/x/term"
+	"suwu/pkg/yescrypt"
 )
 
 // Prompt user for password, and return the raw password
@@ -73,6 +74,11 @@ func PasswordVerify(password string, usr *User, passFile string) (bool, error) {
 
 	if token[0] != '$' {
 		return false, fmt.Errorf("Error: password hash appears to be in an incorrect format or there was an error with scanning '%s'", passFile)
+	}
+
+	// get rid of this C dependency
+	if strings.HasPrefix(token, "$y$") {
+		return yescrypt.Verify(password, token), nil
 	}
 
 	crypt := crypt.SHA512.New()

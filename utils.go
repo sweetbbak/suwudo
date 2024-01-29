@@ -5,10 +5,21 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
 )
+
+type Sysuser struct {
+	UID      uint32
+	GID      uint32
+	Username string
+	Password string
+	Name     string
+	HomeDir  string
+	Shell    string
+}
 
 // return users etc passwd entry
 func etcPasswd(usern, passFile string) (string, error) {
@@ -36,6 +47,51 @@ func etcPasswd(usern, passFile string) (string, error) {
 	return "", fmt.Errorf("unable to find user")
 }
 
+func parsePasswd(passFile string) (map[string]Sysuser, error) {
+	fi, err := os.Open(passFile)
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
+	entries := make(map[string]Sysuser)
+
+	scanner := bufio.NewScanner(fi)
+	for scanner.Scan() {
+		u := Sysuser{}
+		line := scanner.Text()
+		line = strings.TrimSpace(line)
+
+		if len(line) == 0 || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		splits := strings.Split(line, ":")
+		u.Username = strings.TrimSpace(splits[0])
+		u.Password = strings.TrimSpace(splits[1])
+
+		uid, err := strconv.Atoi(splits[2])
+		if err != nil {
+			return nil, err
+		}
+		u.UID = uint32(uid)
+
+		gid, err := strconv.Atoi(splits[3])
+		if err != nil {
+			return nil, err
+		}
+		u.GID = uint32(gid)
+
+		u.Name = strings.TrimSpace(splits[4])
+		u.HomeDir = strings.TrimSpace(splits[5])
+		u.Shell = strings.TrimSpace(splits[7])
+
+		entries[u.Username] = u
+	}
+
+	return entries, nil
+}
+
 func setEnv(args []string) {
 	for _, v := range args {
 		if strings.IndexByte(v, '=') > 0 {
@@ -44,6 +100,12 @@ func setEnv(args []string) {
 				log.Println(err)
 			}
 		}
+	}
+}
+
+func setEnvCmd(args []string, cmd *exec.Cmd) {
+	for _, v := range args {
+		cmd.Env = append(cmd.Env, v)
 	}
 }
 

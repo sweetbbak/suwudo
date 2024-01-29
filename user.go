@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/user"
 	"strconv"
 	"strings"
@@ -44,9 +45,11 @@ func NewUser() (*User, error) {
 
 	Debug("NewUser: User set as: %s - Group %s\n", usr.User.Username, usr.Group.Name)
 
-	// defaults will be overridden
-	// usr.Execute.Env = os.Environ()
-	// usr.Env = opts.SetEnv
+	t, ok := os.LookupEnv("TERM")
+	if ok {
+		usr.Env = append(usr.Env, fmt.Sprintf("TERM=%s", t))
+	}
+
 	usr.Shell = "/bin/sh"
 	usr.Execute.PreserveEnv = false
 	usr.Fork = false
@@ -143,14 +146,22 @@ func (u *User) GetTargetShell() (string, error) {
 }
 
 func (u *User) Exec(args []string) error {
-	return Run(args, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+	return Run(args, u)
 }
 
 func (u *User) ExecShell() error {
-	return Run([]string{u.Shell}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+	return Run([]string{u.Shell}, u)
 }
 
 func (u *User) ExecShellCmd(args []string) error {
 	cmd := strings.Join(args, " ")
-	return Run([]string{u.Shell, "-c", cmd}, u.Env, u.asUID, u.asGID, u.Dir, u.PreserveEnv, u.Fork)
+	return Run([]string{u.Shell, "-c", cmd}, u)
+}
+
+func (u *User) CacheCredentials() error {
+	err := CacheCreds()
+	if err != nil {
+		return err
+	}
+	return nil
 }

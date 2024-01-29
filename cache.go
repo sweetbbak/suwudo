@@ -3,17 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/user"
 	"path"
+	"syscall"
 	"time"
 )
 
+// TODO create proper root-only config directory and user specific cache
 var configDirs = []string{"/var/lock", "/etc", "/var", "/run"}
 var lockfile = "suwu.lock"
 
 func isRoot() bool {
-	cuser, _ := user.Current()
-	return cuser.Uid == "0"
+	euid := syscall.Geteuid()
+	return euid == 0
 }
 
 func getConfdir() (string, error) {
@@ -27,10 +28,6 @@ func getConfdir() (string, error) {
 }
 
 func CacheCreds() error {
-	// if !isRoot() {
-	// 	return fmt.Errorf("Must be root")
-	// }
-
 	dir, err := getConfdir()
 	if err != nil {
 		return err
@@ -43,13 +40,13 @@ func CacheCreds() error {
 }
 
 func Lockfile(lock string) error {
-	file, err := os.OpenFile(lock, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o755)
+	file, err := os.OpenFile(lock, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	now := time.Now().Add(time.Second * 15)
+	now := time.Now().Add(time.Minute * 5)
 	_, err = file.WriteString(now.Format(time.Layout))
 	if err != nil {
 		return err
@@ -87,7 +84,7 @@ func IsAuthorizedCache() (bool, error) {
 	}
 
 	now := time.Now()
-	Debug("time now: %v\nexpiry: %v -- Is before?: %v\n", t, now, now.Before(t))
+	Debug("time now: %v\nexpiry: %v -- Is before timeout?: %v\n", t, now, now.Before(t))
 
 	if now.Before(t) || now.Equal(t) {
 		Debug("Is before limit")

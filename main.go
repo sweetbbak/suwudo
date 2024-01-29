@@ -90,7 +90,9 @@ func Suwu(args []string) error {
 		}
 	}
 
-	usr.Env = opts.SetEnv
+	if opts.PreserveEnv {
+		usr.Env = os.Environ()
+	}
 
 	var shell string
 	shell, err = usr.GetTargetShell()
@@ -101,6 +103,10 @@ func Suwu(args []string) error {
 	usr.Shell = shell
 	if opts.Directory != "" {
 		usr.Dir = opts.Directory
+	}
+
+	if len(opts.SetEnv) != 0 {
+		usr.Env = opts.SetEnv
 	}
 
 	// interactive shell
