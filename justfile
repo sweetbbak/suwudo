@@ -6,7 +6,7 @@ default:
 build:
     #!/usr/bin/env bash
     printf "\e[3;33;3m%s\e[0m\n" "Building suwudo"
-    go build
+    go build -ldflags "-s -w" -o suwu cmd/*.go
     sudo chown root suwu
     sudo chmod u+s suwu
 
