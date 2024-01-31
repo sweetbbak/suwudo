@@ -2,7 +2,13 @@ alias b := default
 
 default:
     just --justfile {{justfile()}} build
+    just --justfile {{justfile()}} chmod
 
+chmod:
+    #!/usr/bin/env bash
+    sudo chown root suwu
+    sudo chmod u+s suwu
+    
 build:
     #!/usr/bin/env bash
     printf "\e[3;33;3m%s\e[0m\n" "Building suwudo"
@@ -16,7 +22,9 @@ install-usr-bin:
     suwu_path=$(which suwu)
     [ -e "$suwu_path" ] && rm "${suwu_path}"
 
-    go build
+    printf "\e[3;33;3m%s\e[0m\n" "Building suwudo"
+    go build -ldflags "-s -w" -o suwu cmd/*.go
+
     sudo /usr/bin/cp ./suwu /usr/bin
     sudo chown root /usr/bin/suwu
     sudo chmod u+s /usr/bin/suwu
@@ -27,7 +35,8 @@ install:
     suwu_path=$(which suwu)
     [ -e "$suwu_path" ] && rm "${suwu_path}"
 
-    go build
+    printf "\e[3;33;3m%s\e[0m\n" "Building suwudo"
+    go build -ldflags "-s -w" -o suwu cmd/*.go
     /usr/bin/cp ./suwu ~/bin
     sudo chown root ~/bin/suwu
     sudo chmod u+s ~/bin/suwu

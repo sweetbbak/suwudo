@@ -1,12 +1,11 @@
 <p></p>
 <p align="center">
   <img src="assets/suwu.png" />
+  A simple and minimal implementation of a privelage escalation tool similar to
+  `sudo`, `su` or `doas`.
 </p>
 
-A simple and minimal implementation of a privelage escalation tool similar to
-`sudo`, `su` or `doas`.
-
-![](assets/ex1.png)
+![example of suwu being used](assets/ex1.png)
 
 ## Examples
 ```sh
